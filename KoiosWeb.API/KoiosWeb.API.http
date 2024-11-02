@@ -1,0 +1,6 @@
+@KoiosWeb.API_HostAddress = http://localhost:5008
+
+GET {{KoiosWeb.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
