@@ -9,11 +9,9 @@ public partial class Offer
 {
     public int Id { get; set; }
 
-    public int ComputerHardwareId { get; set; }
+    public DateTime DateCreated { get; set; }
 
-    public int Amount { get; set; }
+    public DateTime DateChanged { get; set; }
 
-    public decimal TotalPrice { get; set; }
-
-    public virtual ComputerHardware ComputerHardware { get; set; }
+    public virtual ICollection<OfferItem> OfferItems { get; set; } = new List<OfferItem>();
 }

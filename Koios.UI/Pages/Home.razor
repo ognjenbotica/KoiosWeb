@@ -1,7 +1,118 @@
 ﻿@page "/"
+@inject IOfferService offerService
+@inject ISnackbar SnackbarService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home | Koios Hardware</PageTitle>
+@if (sourceLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
 
-<h1>Hello, world!</h1>
+<MudContainer Class="mt-4" Fixed="true">
+        <MudPaper Class="d-flex flex-wrap" Elevation="0">
+        <MudPaper MinWidth="370px" Elevation="0">
+            <MudText Class="pl-2 pt-4" Typo="Typo.h6">Ponude</MudText>
+        </MudPaper>
+        <MudSpacer />
+        </MudPaper>
+        <MudDataGrid T="OfferDto" Class="mt-2" Items="@DataSource" Elevation="5" Hover="true" Loading="@sourceLoading" Breakpoint="Breakpoint.Xs" LoadingProgressColor="Color.Primary">
+        <Columns>
+            <HierarchyColumn T="OfferDto" />
+            <PropertyColumn Property="x => x.Id" Title="Br. Ponude" />
+            <PropertyColumn Property='x => x.OfferItems.Sum(x => x.Amount * x.Price) + " €"' Title="Iznos" />
+            <PropertyColumn Property='x => x.DateCreated.ToString("dd.MM.yyyy HH:mm")' Title="Vrijeme Izrade" />
+            <PropertyColumn Property='x => x.DateChanged.ToString("dd.MM.yyyy HH:mm")' Title="Vrijeme Zadnje Promjene" />
+            <TemplateColumn CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudStack Row>
+                        <MudButton @onclick="(e) => OpenDialog(e,(OfferDto)context.Item)" Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Primary">Promjeni</MudButton>
+                        <MudButton Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Warning">Obriši</MudButton>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <ChildRowContent>
+            <MudPaper Class="d-flex flex-column" Elevation="0">
+                    <MudPaper Class="pa-0" Elevation="0">
+                        <MudTable Items="@context.Item.OfferItems" Bordered="true" Elevation="3" Class="mb-3" Dense="true" Hover="true">
+                            <HeaderContent>
+                                <MudTh>Tip</MudTh>
+                                <MudTh>Model</MudTh>
+                                <MudTh>Brand</MudTh>
+                                <MudTh>Količina</MudTh>
+                                <MudTh>Jed. cijena</MudTh>
+                                <MudTh>Ukupno</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="item">
+                                <MudTd>@item.ComputerHardware.Type.TypeName</MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@item.ComputerHardware.Model</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@item.ComputerHardware.Brand</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@item.Amount</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@item.Price €</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@GetItemsPriceSummary(item) €</MudText></MudTd>
+                            </RowTemplate>
+                            <FooterContent>
+                                <MudTr>
+                                    <MudTd><MudText Typo="Typo.h6">Sveukupno:</MudText></MudTd>
+                                    <MudTd><MudText Typo="Typo.h6">@context.Item.OfferItems.Sum(x => x.Amount * x.Price) €</MudText></MudTd>
+                                </MudTr>
+                            </FooterContent>
+                        </MudTable>
+                    </MudPaper>
+            </MudPaper>
+        </ChildRowContent>
+        <PagerContent>
+            <MudDataGridPager T="OfferDto" />
+        </PagerContent>
+    </MudDataGrid>
 
-Welcome to your new app.
+</MudContainer>
+
+@code{
+    IEnumerable<OfferDto>? DataSource { get; set; }
+    private bool sourceLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetOffers();
+    }
+
+    public async Task GetOffers()
+    {
+        var response = await offerService.GetOffers();
+
+        if (response.Success)
+        {
+            sourceLoading = false;
+            var offers = response.Data;
+
+            if (offers != null)
+            {
+ 
+                DataSource = offers;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            SnackbarService.Add("Request error", Severity.Normal);
+        }
+    }
+
+    private async Task OpenDialog(MouseEventArgs e, OfferDto offer)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, NoHeader = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var parameters = new DialogParameters { ["Offer"] = offer };
+
+        //var dialog = DialogService.Show<DispoDetailsDialog>(string.Empty, parameters, options);
+
+        //var result = await dialog.Result;
+    }
+
+    private string GetItemsPriceSummary(OfferItemDto offerItem)
+    {
+        return (offerItem.Amount * offerItem.Price).ToString();
+    }
+
+
+}

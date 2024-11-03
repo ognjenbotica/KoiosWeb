@@ -21,6 +21,8 @@ public partial class KoiosDBContext : DbContext
 
     public virtual DbSet<Offer> Offers { get; set; }
 
+    public virtual DbSet<OfferItem> OfferItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ComputerHardware>(entity =>
@@ -78,15 +80,29 @@ public partial class KoiosDBContext : DbContext
 
         modelBuilder.Entity<Offer>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Offer__3214EC07A2D6CC7A");
+            entity.HasKey(e => e.Id).HasName("PK__Offer__3214EC071E93E8E6");
 
             entity.ToTable("Offer");
 
-            entity.Property(e => e.TotalPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.DateChanged).HasColumnType("datetime");
+            entity.Property(e => e.DateCreated).HasColumnType("datetime");
+        });
 
-            entity.HasOne(d => d.ComputerHardware).WithMany(p => p.Offers)
+        modelBuilder.Entity<OfferItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__OfferIte__3214EC07083E9875");
+
+            entity.ToTable("OfferItem");
+
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.ComputerHardware).WithMany(p => p.OfferItems)
                 .HasForeignKey(d => d.ComputerHardwareId)
-                .HasConstraintName("FK__Offer__ComputerH__5165187F");
+                .HasConstraintName("FK__OfferItem__Compu__656C112C");
+
+            entity.HasOne(d => d.Offer).WithMany(p => p.OfferItems)
+                .HasForeignKey(d => d.OfferId)
+                .HasConstraintName("FK__OfferItem__Offer__6477ECF3");
         });
 
         OnModelCreatingPartial(modelBuilder);

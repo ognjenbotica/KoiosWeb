@@ -19,7 +19,7 @@ public partial class ComputerHardware
 
     public virtual ICollection<HardwareSpec> HardwareSpecs { get; set; } = new List<HardwareSpec>();
 
-    public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
+    public virtual ICollection<OfferItem> OfferItems { get; set; } = new List<OfferItem>();
 
     public virtual HardwareType Type { get; set; }
 }

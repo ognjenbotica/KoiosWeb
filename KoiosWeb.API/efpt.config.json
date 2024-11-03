@@ -13,24 +13,28 @@
    "SelectedHandlebarsLanguage": 2,
    "SelectedToBeGenerated": 0,
    "T4TemplatePath": null,
-   "Tables": [
-      {
-         "Name": "[dbo].[ComputerHardware]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[HardwareSpecs]",
-         "ObjectType": 0
-      },
-      {
-        "Name": "[dbo].[HardwareTypes]",
-        "ObjectType": 0
-      },
-      {
-        "Name": "[dbo].[Offer]",
-        "ObjectType": 0
-      }
-   ],
+  "Tables": [
+    {
+      "Name": "[dbo].[ComputerHardware]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[HardwareSpecs]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[HardwareTypes]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Offer]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[OfferItem]",
+      "ObjectType": 0
+    }
+  ],
    "UiHint": null,
    "UncountableWords": null,
    "UseAsyncStoredProcedureCalls": true,

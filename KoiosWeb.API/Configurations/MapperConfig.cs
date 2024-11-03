@@ -12,6 +12,7 @@ namespace KoiosWeb.API.Configurations
             CreateMap<HardwareSpec, HardwareSpecDto>().ReverseMap();
             CreateMap<HardwareType, HardwareTypeDto>().ReverseMap();
             CreateMap<Offer, OfferDto>().ReverseMap();
+            CreateMap<OfferItem, OfferItemDto>().ReverseMap();
         }
     }
 }

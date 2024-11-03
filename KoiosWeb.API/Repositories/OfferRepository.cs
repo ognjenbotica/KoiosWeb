@@ -14,12 +14,16 @@ namespace KoiosWeb.API.Repositories
 
         public async Task<List<Offer>> GetOffersAsync()
         {
-            return await context.Offers.Include(q => q.ComputerHardware).ToListAsync();
+            return await context.Offers
+                .Include(q => q.OfferItems)
+                .ThenInclude(q => q.ComputerHardware)
+                .ThenInclude(q => q.Type)
+                .ToListAsync();
         }
 
         public async Task<Offer?> GetOfferByIdAsync(int id)
         {
-            return await context.Offers.Include(q => q.ComputerHardware).FirstOrDefaultAsync(q => q.Id == id);
+            return await context.Offers.Include(q => q.OfferItems).FirstOrDefaultAsync(q => q.Id == id);
         }
 
         public async Task<Offer?> CreateOfferAsync(Offer offer)

@@ -4,12 +4,10 @@ namespace KoiosWeb.API.Models
 {
     public class OfferDto : BaseDto
     {
-        public int ComputerHardwareId { get; set; }
+        public DateTime DateCreated { get; set; }
 
-        public int Amount { get; set; }
+        public DateTime DateChanged { get; set; }
 
-        public decimal TotalPrice { get; set; }
-
-        public virtual ComputerHardwareDto? ComputerHardware { get; set; }
+        public virtual ICollection<OfferItemDto> OfferItems { get; set; } = new List<OfferItemDto>();
     }
 }

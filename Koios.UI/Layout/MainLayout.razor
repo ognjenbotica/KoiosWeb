@@ -1,16 +1,74 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
+@inject NavigationManager NavManager
+@inject IConfiguration configuration
+
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="customTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudImage Height="32" Src="koios-logo.svg" Alt="Koios" Class="ml-2" Elevation="0" />
+        <MudSpacer />
+        <MudToggleIconButton @bind-Toggled="_isDarkMode" Icon="@MudBlazor.Icons.Material.Rounded.DarkMode" ToggledColor="@Color.Default" Color="@Color.Default" ToggledIcon="@MudBlazor.Icons.Material.Rounded.LightMode" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always">
         <NavMenu />
-    </div>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+@code {
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    private bool _isDarkMode;
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private MudTheme customTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Black = "#272c34",
+            Primary = "#009FE3",
+            AppbarBackground = "#009FE3",
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#009FE3",
+            Black = "#27272f",
+            Background = "#32333d",
+            BackgroundGray = "#27272f",
+            Surface = "#373740",
+            DrawerBackground = "#27272f",
+            DrawerText = "rgba(255,255,255, 0.50)",
+            DrawerIcon = "rgba(255,255,255, 0.50)",
+            AppbarBackground = "#27272f",
+            AppbarText = "rgba(255,255,255, 0.70)",
+            TextPrimary = "rgba(255,255,255, 0.70)",
+            TextSecondary = "rgba(255,255,255, 0.50)",
+            ActionDefault = "#adadb1",
+            ActionDisabled = "rgba(255,255,255, 0.26)",
+            ActionDisabledBackground = "rgba(255,255,255, 0.12)",
+            Divider = "rgba(255,255,255, 0.12)",
+            DividerLight = "rgba(255,255,255, 0.06)",
+            TableLines = "rgba(255,255,255, 0.12)",
+            LinesDefault = "rgba(255,255,255, 0.12)",
+            LinesInputs = "rgba(255,255,255, 0.3)",
+            TextDisabled = "rgba(255,255,255, 0.2)"
+        }
+    };
+
+    bool _drawerOpen { get; set; }
+
+    void DrawerToggle()
+    {
+            _drawerOpen = !_drawerOpen;
+    }
+}
+
