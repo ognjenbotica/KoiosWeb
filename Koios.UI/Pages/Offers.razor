@@ -1,0 +1,282 @@
+﻿@page "/offer"
+@inject IOfferService offerService
+@inject IOfferItemService offerItemService
+@inject IComputerHardwareService computerHardwareService
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+
+<PageTitle>Ponude | Koios Hardware</PageTitle>
+@if (sourceLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+
+<MudContainer Class="mt-4" Fixed="true">
+        <MudPaper Class="d-flex flex-wrap" Elevation="0">
+        <MudPaper MinWidth="370px" Elevation="0">
+            <MudText Class="pl-2 pt-4" Typo="Typo.h6">Ponude</MudText>
+        </MudPaper>
+        <MudSpacer />
+        </MudPaper>
+        <MudDataGrid T="OfferDto" Class="mt-2" Items="@DataSource" Elevation="5" Hover="true" Loading="@sourceLoading" Breakpoint="Breakpoint.Xs" LoadingProgressColor="Color.Primary">
+        <ToolBarContent>
+            <MudPaper Elevation="0" Class="d-flex justify-end">
+                <MudButton @onclick="CreateNewOffer" Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Primary">Kreiraj Ponudu</MudButton>
+            </MudPaper>
+        </ToolBarContent>
+        <Columns>
+            <HierarchyColumn T="OfferDto" />
+            <PropertyColumn Property="x => x.Id" Title="Br. Ponude" />
+            <PropertyColumn Property='x => GetCalculatedTotalPrice(x.OfferItems) + " €"' Title="Iznos" />
+            <PropertyColumn Property='x => x.DateCreated.ToString("dd.MM.yyyy HH:mm")' Title="Vrijeme Izrade" />
+            <PropertyColumn Property='x => x.DateChanged.ToString("dd.MM.yyyy HH:mm")' Title="Vrijeme Zadnje Promjene" />
+            <TemplateColumn CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudStack Row>
+                        <MudButton @onclick="(e) => DeleteDialog(e,(OfferDto)context.Item)" Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Warning">Obriši</MudButton>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <ChildRowContent>
+            <MudPaper Class="d-flex flex-column" Elevation="0">
+                    <MudPaper Class="pa-0" Elevation="0">
+                        <MudDataGrid ReadOnly="false" T="OfferItemDto" CanceledEditingItem="@CanceledEditingItem" CommittedItemChanges="@CommittedItemChanges" Items="@context.Item.OfferItems" EditMode="DataGridEditMode.Form" EditTrigger="DataGridEditTrigger.Manual" Bordered="true" Elevation="3" Class="mb-3" Dense="true" Hover="true">
+                            <Columns>
+                                <PropertyColumn Property="x => x.ComputerHardware.Model" Title="Model">
+                                    <EditTemplate Context="editModel">
+                                    <MudSelect Label="Model" T="ComputerHardwareDto" ToStringFunc="@(e=> e==null?null : $"{e.Model}")" Value="@editModel.Item.ComputerHardware" ValueChanged="OnValueChanged" Variant="Variant.Outlined">
+                                            @{ 
+                                                if(ComputerHardware != null)
+                                                    foreach(var item in ComputerHardware)
+                                                    {
+                                                    <MudSelectItem T="ComputerHardwareDto" Value="@item">@item.Model</MudSelectItem>
+                                                }
+
+                                                if(currentComputerHardwareId.HasValue)
+                                                {
+                                                    editModel.Item.ComputerHardware.Model = ComputerHardware!.Where(x => x.Id == currentComputerHardwareId).FirstOrDefault()!.Model;
+                                                }
+                                        }
+                                        </MudSelect>
+                                    </EditTemplate>
+                                    <FooterTemplate Context="item">
+                                        <MudButton @onclick="(e) => AddOfferItemDialog(e,(OfferDto)context.Item)" Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Primary">Dodaj stavku</MudButton>
+                                    </FooterTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn Property="x => x.ComputerHardware.Type.TypeName" Title="Tip">
+                                    <EditTemplate Context="editType">
+                                        <MudTextField Label="Tip" @bind-Value="editType.Item.ComputerHardware.Type.TypeName" Variant="Variant.Outlined" Disabled="true" />
+                                    </EditTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn Property="x => x.ComputerHardware.Brand" Title="Brand">
+                                    <EditTemplate Context="editBrand">
+                                    <MudTextField Label="Brand" @bind-Value="editBrand.Item.ComputerHardware.Brand" Variant="Variant.Outlined" Disabled="true" />
+                                    </EditTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn Property="x => x.Amount" Title="Količina">
+                                    <EditTemplate Context="editAmount">
+                                        <MudTextField Label="Količina" @bind-Value="editAmount.Item.Amount" Variant="Variant.Outlined" InputType="InputType.Number" />
+                                    </EditTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn Property='x => x.ComputerHardware.Price + " €"' Title="Jed. cijena">
+                                    <EditTemplate Context="editPrice">
+                                        @{
+                                            if(currentUnitPrice.HasValue)
+                                            {
+                                                editPrice.Item.ComputerHardware.Price = Math.Round((double)currentUnitPrice, 2);
+                                            }
+                                        }
+                                        <MudTextField Label="Jed. cijena" @bind-Value="editPrice.Item.ComputerHardware.Price" Variant="Variant.Outlined" Disabled="true" />
+                                    </EditTemplate>
+                                    <FooterTemplate Context="item">
+                                        <MudText Typo="Typo.h6">Sveukupno: @GetCalculatedTotalPrice(context.Item.OfferItems) </MudText>
+                                    </FooterTemplate>
+                                </PropertyColumn>
+                                <PropertyColumn Property='x => GetCalculatedOfferItemPrice(x) + " €"' Title="Ukupno" />
+                                <TemplateColumn CellClass="d-flex justify-end">
+                                    <CellTemplate Context="edit">
+                                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(()=>edit.Actions.StartEditingItemAsync())" />
+                                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@((e)=> DeleteItemDialog(e, edit.Item))" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    </MudPaper>
+            </MudPaper>
+        </ChildRowContent>
+        <PagerContent>
+            <MudDataGridPager T="OfferDto" />
+        </PagerContent>
+    </MudDataGrid>
+
+</MudContainer>
+
+@code{
+    IEnumerable<OfferDto>? DataSource { get; set; }
+    IEnumerable<ComputerHardwareDto>? ComputerHardware { get; set; }
+    double? currentUnitPrice;
+    int? currentComputerHardwareId;
+
+    private bool sourceLoading = true;
+    private List<string> _events = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetOffers();
+        await GetComputerHardware();
+    }
+
+    void CanceledEditingItem(OfferItemDto item)
+    {
+    }
+
+    async Task CommittedItemChanges(OfferItemDto item)
+    {
+        if(item.Amount == 0)
+        {
+            SnackbarService.Add("Količina ne može biti 0", Severity.Error);
+        }
+        else
+        {
+            var response = await offerItemService.UpdateOfferItem(item);
+
+            if (response.Success)
+            {
+                SnackbarService.Add("Promjene su uspješno sačuvane", Severity.Success);
+            }
+            else
+            {
+                SnackbarService.Add("Greška prilikom čuvanja promjena", Severity.Error);
+            }
+        }
+    }
+
+    private string GetCalculatedTotalPrice(ICollection<OfferItemDto> offerItemDtos)
+    {
+        return Math.Round(offerItemDtos.Select(x => x.Amount * x.ComputerHardware.Price).Sum(), 2).ToString();
+    }
+
+    private string GetCalculatedOfferItemPrice(OfferItemDto offerItemDto)
+    {
+        return Math.Round(offerItemDto.Amount * offerItemDto.ComputerHardware.Price, 2).ToString();
+    }
+
+    void OnValueChanged(ComputerHardwareDto hardware)
+    {
+        currentUnitPrice = ComputerHardware!.Where(x => x.Id == hardware.Id).FirstOrDefault()!.Price;
+        currentComputerHardwareId = hardware.Id;
+    }
+
+    public async Task GetOffers()
+    {
+        var response = await offerService.GetOffers();
+
+        if (response.Success)
+        {
+            sourceLoading = false;
+            var offers = response.Data;
+
+            if (offers != null)
+            {
+                DataSource = offers;
+            }
+        }
+        else
+        {
+            SnackbarService.Add("Request error", Severity.Normal);
+        }
+    }
+
+    public async Task GetComputerHardware()
+    {
+        var response = await computerHardwareService.GetComputerHardware();
+
+        if (response.Success)
+        {
+            var computerHardware = response.Data;
+
+            if(computerHardware != null)
+            {
+                ComputerHardware = computerHardware;
+            }
+        }
+        else
+        {
+            SnackbarService.Add("Request error", Severity.Normal);
+        }
+    }
+
+    private async Task AddOfferItemDialog(MouseEventArgs e, OfferDto offer)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var parameters = new DialogParameters<AddOfferItemDialog> 
+        { 
+            { x => x.Offer, offer },
+            { x => x.Color, Color.Primary },
+            { x => x.ButtonText, "Spremi" },
+            { x => x.ComputerHardware, ComputerHardware!.ToList() }
+        };
+
+        var dialog = DialogService.Show<AddOfferItemDialog>($"Dodaj stavku - ponuda Br. {offer.Id}", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            SnackbarService.Add("Stavka uspješno dodana", Severity.Success);
+            await GetOffers();
+        }
+    }
+
+    private async Task CreateNewOffer()
+    {
+        sourceLoading = true;
+        await Task.Delay(2000);
+        await offerService.CreateOffer(new OfferDto { DateChanged = DateTime.Now, DateCreated = DateTime.Now });
+        await GetOffers();
+    }
+
+    private async Task DeleteDialog(MouseEventArgs e, OfferDto offer)
+    {
+        var parameters = new DialogParameters<DeleteDialog> 
+        { 
+            { x => x.Color, Color.Error},
+            { x => x.ContentText, "Da li ste sigurni da želite izbrisati ovu ponudu?" },
+            { x => x.ButtonText, "Obriši" }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<DeleteDialog>($"Brisanje ponude Br. {offer.Id}", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await offerService.DeleteOffer(offer.Id);
+            await GetOffers();
+        }
+    }
+
+    private async Task DeleteItemDialog(MouseEventArgs e, OfferItemDto offerItem)
+    {
+        var parameters = new DialogParameters<DeleteDialog> 
+        { 
+            { x => x.Color, Color.Error},
+            { x => x.ContentText, "Da li ste sigurni da želite izbrisati ovu stavku?" },
+            { x => x.ButtonText, "Obriši" }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<DeleteDialog>("Brisanje stavke", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await offerItemService.DeleteOfferItem(offerItem.Id);
+            await GetOffers();
+            SnackbarService.Add("Stavka uspješno obrisana", Severity.Success);
+        }
+    }
+}

@@ -1,0 +1,105 @@
+﻿@using AutoMapper
+@inject IMapper mapper;
+@inject IOfferItemService offerItemService
+@inject ISnackbar SnackbarService
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12">
+                <EditForm Model="AddOfferItemModel" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <MudSelect Label="Model" T="ComputerHardwareDto" ToStringFunc="@(e=> e==null?null : $"{e.Model}")" Value="@AddOfferItemModel.ComputerHardware" ValueChanged="OnValueChanged" Required="true" Variant="Variant.Outlined">
+                        @{
+                            if (ComputerHardware != null)
+                                foreach (var item in ComputerHardware)
+                                {
+                                    <MudSelectItem T="ComputerHardwareDto" Value="@item">@item.Model</MudSelectItem>
+                                }
+
+                            if (currentComputerHardwareId.HasValue)
+                            {
+                                AddOfferItemModel.ComputerHardware = ComputerHardware!.FirstOrDefault(x => x.Id == currentComputerHardwareId);
+                            }
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Tip" @bind-Value="currentTypeName" Variant="Variant.Outlined" Disabled="true" />
+                    <MudTextField Label="Brand" @bind-Value="currentBrand" Variant="Variant.Outlined" Disabled="true" />
+                    <MudTextField Label="Količina" @bind-Value="AddOfferItemModel.Amount" For="@(() => AddOfferItemModel.Amount)" Variant="Variant.Outlined" Required="true" InputType="InputType.Number" />
+                    <MudTextField Label="Jed. cijena" @bind-Value="currentUnitPrice" Variant="Variant.Outlined" Disabled="true" />
+                </EditForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Odustani</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Outlined" ButtonType="ButtonType.Submit" OnClick="OnValidSubmit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    [CascadingParameter]
+    private MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public OfferDto Offer { get; set; } = new OfferDto();
+
+    [Parameter]
+    public List<ComputerHardwareDto> ComputerHardware { get; set; } = new List<ComputerHardwareDto>();
+
+    [Parameter]
+    public string? ButtonText { get; set; }
+
+    [Parameter]
+    public Color Color { get; set; }
+
+    private void Submit() => MudDialog!.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog!.Cancel();
+
+    private AddOfferItemModel AddOfferItemModel = new();
+
+    private string currentTypeName = string.Empty;
+    private int? currentComputerHardwareId; 
+    private string currentBrand = string.Empty;
+    private double currentUnitPrice = 0;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+
+    }
+
+    void OnValueChanged(ComputerHardwareDto hardware)
+    {
+        currentUnitPrice = hardware.Price;
+        currentBrand = hardware.Brand;
+        currentTypeName = hardware.Type.TypeName;
+        currentComputerHardwareId = hardware.Id;
+
+        StateHasChanged();
+    }
+
+    public async Task OnValidSubmit()
+    {
+        if (!currentComputerHardwareId.HasValue)
+        {
+            return;
+        }
+
+        AddOfferItemModel.ComputerHardwareId = currentComputerHardwareId.Value;
+        AddOfferItemModel.OfferId = Offer.Id;
+
+        var offerItem = mapper.Map<OfferItemDto>(AddOfferItemModel);
+
+        var response = await offerItemService.CreateOfferItem(offerItem);
+
+        if(response.Success)
+        {
+            Submit();
+        }
+        else
+        {
+            SnackbarService.Add("Request error", Severity.Error);
+        }
+    }
+}

@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using KoiosWeb.API.Interfaces;
 using KoiosWeb.API.Models;
-using KoiosWeb.API.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KoiosWeb.API.Controllers

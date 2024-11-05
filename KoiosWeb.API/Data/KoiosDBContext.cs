@@ -90,19 +90,17 @@ public partial class KoiosDBContext : DbContext
 
         modelBuilder.Entity<OfferItem>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__OfferIte__3214EC07083E9875");
+            entity.HasKey(e => e.Id).HasName("PK__OfferIte__3214EC07719CAC56");
 
             entity.ToTable("OfferItem");
 
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
-
             entity.HasOne(d => d.ComputerHardware).WithMany(p => p.OfferItems)
                 .HasForeignKey(d => d.ComputerHardwareId)
-                .HasConstraintName("FK__OfferItem__Compu__656C112C");
+                .HasConstraintName("FK__OfferItem__Compu__6A30C649");
 
             entity.HasOne(d => d.Offer).WithMany(p => p.OfferItems)
                 .HasForeignKey(d => d.OfferId)
-                .HasConstraintName("FK__OfferItem__Offer__6477ECF3");
+                .HasConstraintName("FK__OfferItem__Offer__6B24EA82");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -15,6 +15,7 @@ builder.Services.AddDbContext<KoiosDBContext>(options => options.UseSqlServer(co
 
 builder.Services.AddScoped<IComputerHardwareRepository, ComputerHardwareRepository>();
 builder.Services.AddScoped<IOfferRepository, OfferRepository>();
+builder.Services.AddScoped<IOfferItemRepository, OfferItemRepository>();
 
 builder.Services.AddControllers();
 

@@ -14,7 +14,7 @@ namespace KoiosWeb.API.Repositories
 
         public async Task<List<ComputerHardware>> GetComputerHardwareAsync()
         {
-            return await context.ComputerHardwares.Include(q => q.HardwareSpecs).ToListAsync();
+            return await context.ComputerHardwares.Include(q => q.HardwareSpecs).Include(q => q.Type).ToListAsync();
         }
     }
 }

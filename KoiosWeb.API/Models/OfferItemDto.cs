@@ -8,8 +8,6 @@ namespace KoiosWeb.API.Models
 
         public int Amount { get; set; }
 
-        public decimal Price { get; set; }
-
         public int ComputerHardwareId { get; set; }
 
         public virtual ComputerHardwareDto? ComputerHardware { get; set; }

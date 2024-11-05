@@ -15,8 +15,6 @@ public partial class OfferItem
 
     public int Amount { get; set; }
 
-    public decimal Price { get; set; }
-
     public virtual ComputerHardware ComputerHardware { get; set; }
 
     public virtual Offer Offer { get; set; }

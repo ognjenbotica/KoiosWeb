@@ -7,6 +7,8 @@ using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Koios.UI.Services.Base;
 using Koios.UI.Services.Offer;
+using Koios.UI.Configurations;
+using Koios.UI.Services.ComputerHardware;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -21,6 +23,10 @@ builder.Services.AddBlazoredSessionStorage();
 
 builder.Services.AddScoped<IClient, Client>();
 builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IOfferItemService, OfferItemService>();
+builder.Services.AddScoped<IComputerHardwareService, ComputerHardwareService>();
+
+builder.Services.AddAutoMapper(typeof(MapperConfig));
 
 builder.Services.AddMudServices(config =>
 {
